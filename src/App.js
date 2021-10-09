@@ -1,6 +1,6 @@
 import './App.css';
 // import { GoogleAuthProvider } from "firebase/auth";
-import { getAuth, signInWithPopup, GoogleAuthProvider, GithubAuthProvider, signOut } from "firebase/auth";
+import { getAuth, signInWithPopup, GoogleAuthProvider, GithubAuthProvider, signOut, createUserWithEmailAndPassword } from "firebase/auth";
 import initializeAuthentication from './Firebase/firebase.initialize';
 import { useState } from 'react';
 
@@ -50,6 +50,7 @@ function App() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
 
   const handleEmailChange = e => {
     setEmail(e.target.value);
@@ -62,35 +63,54 @@ function App() {
   const handleRegistration = (e) => {
     e.preventDefault();
     console.log(email, password);
+    if (password.length < 6) {
+      setError("Password must be at least 6 characters long.");
+      return;
+    }
+    if(!/(?=(.*[0-9]){1,})/.test(password)){
+      setError("Pasword must contain a number.");
+      return;
+    }
+    createUserWithEmailAndPassword(auth, email, password)
+      .then(result => {
+        const user1 = result.user;
+        console.log(user1);
+        setError("");
+      })
+      .catch(error => {
+        setError(error.message);
+      })
   }
+
 
   return (
     <div className="mx-auto w-50">
-      <h3 className="text-primary text-center">Register</h3>
+      <h3 className="text-center text-primary">Register</h3>
       <form onSubmit={handleRegistration}>
-        <div class="row mb-3">
-          <label for="inputEmail3" class="col-sm-2 col-form-label">Email</label>
-          <div class="col-sm-10">
-            <input onBlur={handleEmailChange} type="email" class="form-control" id="inputEmail3" />
+        <div className="mb-3 row">
+          <label htmlFor="inputEmail3" className="col-sm-2 col-form-label">Email</label>
+          <div className="col-sm-10">
+            <input onBlur={handleEmailChange} type="email" className="form-control" id="inputEmail3" required />
           </div>
         </div>
-        <div class="row mb-3">
-          <label for="inputPassword3" class="col-sm-2 col-form-label">Password</label>
-          <div class="col-sm-10">
-            <input onBlur={handlePasswordChange} type="password" class="form-control" id="inputPassword3" />
+        <div className="mb-3 row">
+          <label htmlFor="inputPassword3" className="col-sm-2 col-form-label">Password</label>
+          <div className="col-sm-10">
+            <input onBlur={handlePasswordChange} type="password" className="form-control" id="inputPassword3" required />
           </div>
         </div>
-        <div class="row mb-3">
-          <div class="col-sm-10 offset-sm-2">
-            <div class="form-check">
-              <input class="form-check-input" type="checkbox" id="gridCheck1" />
-              <label class="form-check-label" for="gridCheck1">
+        <div className="mb-3 row">
+          <div className="col-sm-10 offset-sm-2">
+            <div className="form-check">
+              <input className="form-check-input" type="checkbox" id="gridCheck1" />
+              <label className="form-check-label" htmlFor="gridCheck1">
                 Example checkbox
               </label>
             </div>
           </div>
         </div>
-        <button type="submit" class="btn btn-primary">Sign in</button>
+        <div className="text-danger">{error}</div>
+        <button type="submit" className="btn btn-primary">Sign in</button>
       </form>
     </div>
   );
