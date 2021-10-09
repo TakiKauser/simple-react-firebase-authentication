@@ -1,6 +1,6 @@
 import './App.css';
 // import { GoogleAuthProvider } from "firebase/auth";
-import { getAuth, signInWithPopup, GoogleAuthProvider, GithubAuthProvider, signOut, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendEmailVerification, sendPasswordResetEmail } from "firebase/auth";
+import { getAuth, signInWithPopup, GoogleAuthProvider, GithubAuthProvider, signOut, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendEmailVerification, sendPasswordResetEmail, updateProfile } from "firebase/auth";
 import initializeAuthentication from './Firebase/firebase.initialize';
 import { useState } from 'react';
 
@@ -48,6 +48,7 @@ function App() {
       })
   }
 
+  const [userName, setUserName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -55,6 +56,10 @@ function App() {
 
   const toggleLogIn = e => {
     setIsLogin(e.target.checked);
+  }
+
+  const handleNameChange = e => {
+    setUserName(e.target.value);
   }
 
   const handleEmailChange = e => {
@@ -98,9 +103,17 @@ function App() {
         console.log(user1);
         setError("");
         verifyEmail();
+        setName();
       })
       .catch(error => {
         setError(error.message);
+      })
+  }
+
+  const setName = () => {
+    updateProfile(auth.currentUser, { displayName: userName })
+      .then(result => {
+
       })
   }
 
@@ -116,17 +129,23 @@ function App() {
 
   const handleResetPassword = () => {
     sendPasswordResetEmail(auth, email)
-    .then(result => {
-      
-    })
+      .then(result => {
+
+      })
   }
 
   return (
     <div className="mx-auto w-50">
       <h3 className="text-center text-primary">{isLogin ? "Log In" : "Register"} </h3>
       <form onSubmit={handleRegistration}>
+        {!isLogin && <div className="mb-3 row">
+          <label htmlFor="inputName" className="col-sm-2 col-form-label">Username</label>
+          <div className="col-sm-10">
+            <input onBlur={handleNameChange} type="text" className="form-control" id="inputName" required />
+          </div>
+        </div>}
         <div className="mb-3 row">
-          <label htmlFor="inputEmail3" className="col-sm-2 col-form-label">Email</label>
+          <label htmlFor="inputEmail" className="col-sm-2 col-form-label">Email</label>
           <div className="col-sm-10">
             <input onBlur={handleEmailChange} type="email" className="form-control" id="inputEmail3" required />
           </div>
@@ -145,7 +164,7 @@ function App() {
                 Already Registered?
               </label>
             </div>
-              <button onClick={handleResetPassword} type="button" class="btn btn-link">Reset Password</button>
+            <button onClick={handleResetPassword} type="button" class="btn btn-link">Reset Password</button>
           </div>
         </div>
         <div className="text-danger">{error}</div>
