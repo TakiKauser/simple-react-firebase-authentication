@@ -1,12 +1,13 @@
 import './App.css';
 // import { GoogleAuthProvider } from "firebase/auth";
-import { getAuth, signInWithPopup, GoogleAuthProvider, GithubAuthProvider, signOut, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendEmailVerification, sendPasswordResetEmail, updateProfile } from "firebase/auth";
+import { getAuth, signInWithPopup, GoogleAuthProvider, GithubAuthProvider, signOut, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendEmailVerification, sendPasswordResetEmail, updateProfile, FacebookAuthProvider } from "firebase/auth";
 import initializeAuthentication from './Firebase/firebase.initialize';
 import { useState } from 'react';
 
 initializeAuthentication();
 const googleProvider = new GoogleAuthProvider();
 const gitHubProvider = new GithubAuthProvider();
+const facebookProvider = new FacebookAuthProvider();
 
 function App() {
   const [user, setUser] = useState({});
@@ -39,7 +40,28 @@ function App() {
         }
         setUser(loggedInUser);
       })
+      .catch((error) => {
+        console.log(error.message);
+      });
   }
+
+  const handleFacebookSignIn = () => {
+    signInWithPopup(auth, facebookProvider)
+      .then(result => {
+        // console.log(result.user);
+        const { displayName, email, photoURL } = result.user;
+        const loggedInUser = {
+          name: displayName,
+          email: email,
+          photo: photoURL
+        }
+        setUser(loggedInUser);
+      })
+      .catch((error) => {
+        console.log(error.message);
+      });
+  }
+
 
   const handleSignOut = () => {
     signOut(auth)
@@ -164,30 +186,33 @@ function App() {
                 Already Registered?
               </label>
             </div>
-            <button onClick={handleResetPassword} type="button" class="btn btn-link">Reset Password</button>
+            <button onClick={handleResetPassword} type="button" className="btn btn-link">Reset Password</button>
           </div>
         </div>
         <div className="text-danger">{error}</div>
         <button type="submit" className="btn btn-primary">{isLogin ? "Log In" : "Register"}</button>
       </form>
+      <hr /> <br /><br /><br /><br /><br /><br /><br /><br /><br /><br />
+      {!user.name ?
+        <div>
+          <button onClick={handleGoogleSignIn}>Google Sign In</button>
+          <br /> <br />
+          <button onClick={handleGitHubSignIn}>GitHub Sign In</button>
+          <br /> <br />
+          <button onClick={handleFacebookSignIn}>Facebook Sign In</button>
+          <br /> <br />
+        </div> :
+        <button onClick={handleSignOut}>Sign Out</button>
+      }
+      {
+        user.name && <div>
+          <h2>Hellow, {user.name}</h2>
+          <h3>Your email is: {user.email}</h3>
+          <img src={user.photo} alt="" />
+        </div>
+      }
     </div>
   );
 }
 
 export default App;
-/*  {!user.name ?
-   <div>
-     <button onClick={handleGoogleSignIn}>Google Sign In</button>
-     <br />
-     <button onClick={handleGitHubSignIn}>GitHub Sign In</button>
-     <br />
-   </div> :
-   <button onClick={handleSignOut}>Sign Out</button>
- }
- {
-   user.name && <div>
-     <h2>Hellow, {user.name}</h2>
-     <h3>Your email is: {user.email}</h3>
-     <img src={user.photo} alt="" />
-   </div>
- } */
