@@ -1,6 +1,6 @@
 import './App.css';
 // import { GoogleAuthProvider } from "firebase/auth";
-import { getAuth, signInWithPopup, GoogleAuthProvider, GithubAuthProvider, signOut, createUserWithEmailAndPassword } from "firebase/auth";
+import { getAuth, signInWithPopup, GoogleAuthProvider, GithubAuthProvider, signOut, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendEmailVerification, sendPasswordResetEmail } from "firebase/auth";
 import initializeAuthentication from './Firebase/firebase.initialize';
 import { useState } from 'react';
 
@@ -51,6 +51,11 @@ function App() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [isLogin, setIsLogin] = useState(false);
+
+  const toggleLogIn = e => {
+    setIsLogin(e.target.checked);
+  }
 
   const handleEmailChange = e => {
     setEmail(e.target.value);
@@ -67,25 +72,58 @@ function App() {
       setError("Password must be at least 6 characters long.");
       return;
     }
-    if(!/(?=(.*[0-9]){1,})/.test(password)){
+    if (!/(?=(.*[0-9]){1,})/.test(password)) {
       setError("Pasword must contain a number.");
       return;
     }
-    createUserWithEmailAndPassword(auth, email, password)
+
+    isLogin ? processLogIn(email, password) : createNewUser(email, password);
+  }
+
+  const processLogIn = (email, password) => {
+    signInWithEmailAndPassword(auth, email, password)
       .then(result => {
-        const user1 = result.user;
-        console.log(user1);
-        setError("");
+        const user = result.user;
+        console.log(user);
       })
       .catch(error => {
         setError(error.message);
       })
   }
 
+  const createNewUser = (email, password) => {
+    createUserWithEmailAndPassword(auth, email, password)
+      .then(result => {
+        const user1 = result.user;
+        console.log(user1);
+        setError("");
+        verifyEmail();
+      })
+      .catch(error => {
+        setError(error.message);
+      })
+  }
+
+  const verifyEmail = () => {
+    sendEmailVerification(auth.currentUser)
+      .then(result => {
+        console.log(result);
+      })
+      .catch(error => {
+        setError(error.message);
+      })
+  }
+
+  const handleResetPassword = () => {
+    sendPasswordResetEmail(auth, email)
+    .then(result => {
+      
+    })
+  }
 
   return (
     <div className="mx-auto w-50">
-      <h3 className="text-center text-primary">Register</h3>
+      <h3 className="text-center text-primary">{isLogin ? "Log In" : "Register"} </h3>
       <form onSubmit={handleRegistration}>
         <div className="mb-3 row">
           <label htmlFor="inputEmail3" className="col-sm-2 col-form-label">Email</label>
@@ -102,15 +140,16 @@ function App() {
         <div className="mb-3 row">
           <div className="col-sm-10 offset-sm-2">
             <div className="form-check">
-              <input className="form-check-input" type="checkbox" id="gridCheck1" />
+              <input onChange={toggleLogIn} className="form-check-input" type="checkbox" id="gridCheck1" />
               <label className="form-check-label" htmlFor="gridCheck1">
-                Example checkbox
+                Already Registered?
               </label>
             </div>
+              <button onClick={handleResetPassword} type="button" class="btn btn-link">Reset Password</button>
           </div>
         </div>
         <div className="text-danger">{error}</div>
-        <button type="submit" className="btn btn-primary">Sign in</button>
+        <button type="submit" className="btn btn-primary">{isLogin ? "Log In" : "Register"}</button>
       </form>
     </div>
   );
